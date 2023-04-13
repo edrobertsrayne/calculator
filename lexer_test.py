@@ -6,23 +6,23 @@ from lexer import Lexer, Token, TokenType
 def test_lexer_advance_position():
     """Ensure that the lexer advances the position pointer correctly after each read"""
     lexer = Lexer("test")
-    lexer.advance()
-    lexer.advance()
-    assert lexer.pos == 2
+    lexer._advance()
+    lexer._advance()
+    assert lexer._pos == 2
 
 
 def test_lexer_advance_current_character():
     """Ensure that the lexer reads the correct character when it advances"""
     lexer = Lexer("test")
-    lexer.advance()
-    assert lexer.current_char == "e"
+    lexer._advance()
+    assert lexer._current_char == "e"
 
 
 def test_lexer_does_not_overflow():
     """Return None if lexer advances beyond the end of the input string"""
     lexer = Lexer("t")
-    lexer.advance()
-    assert lexer.current_char is None
+    lexer._advance()
+    assert lexer._current_char is None
 
 
 def test_lexer_invalid_character():
