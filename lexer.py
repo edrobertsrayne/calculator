@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-TokenType = Enum("TokenType", ["NUMBER", "PLUS", "MINUS", "DIV", "MUL"])
+TokenType = Enum("TokenType", ["EOF", "NUMBER", "PLUS", "MINUS", "DIV", "MUL"])
 
 
 @dataclass
