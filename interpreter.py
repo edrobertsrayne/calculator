@@ -32,10 +32,11 @@ class Interpreter:
     def expression(self):
         """expression: term ((PLUS | MINUS) term)*"""
         result = self.term()
-        if self.current_token.type == TokenType.PLUS:
-            self.check_token(TokenType.PLUS)
-            result += self.term()
-        elif self.current_token.type == TokenType.MINUS:
-            self.check_token(TokenType.MINUS)
-            result -= self.term()
+        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
+            if self.current_token.type == TokenType.PLUS:
+                self.check_token(TokenType.PLUS)
+                result += self.term()
+            elif self.current_token.type == TokenType.MINUS:
+                self.check_token(TokenType.MINUS)
+                result -= self.term()
         return result
