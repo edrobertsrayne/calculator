@@ -3,7 +3,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-TokenType = Enum("TokenType", ["EOF", "NUMBER", "PLUS", "MINUS", "DIV", "MUL"])
+TokenType = Enum(
+    "TokenType",
+    ["EOF", "NUMBER", "PLUS", "MINUS", "DIV", "MUL", "LPAREN", "RPAREN", "POW"],
+)
 
 
 @dataclass
@@ -45,6 +48,15 @@ class Lexer:
             if self._current_char == "*":
                 self._advance()
                 return Token(TokenType.MUL, "*")
+            if self._current_char == "^":
+                self._advance()
+                return Token(TokenType.POW, "^")
+            if self._current_char == "(":
+                self._advance()
+                return Token(TokenType.LPAREN, "(")
+            if self._current_char == ")":
+                self._advance()
+                return Token(TokenType.RPAREN, ")")
             self._error()
         # EOF reached: reset pointer and stop iteraction
         self._pos = 0
@@ -63,7 +75,7 @@ class Lexer:
 
     def _error(self) -> None:
         """Handle errors"""
-        raise ValueError("Invalid character")
+        raise ValueError(f"Invalid character: {self._current_char}")
 
     def _advance(self) -> None:
         """Advance the position pointer and update the current character"""
