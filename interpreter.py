@@ -9,9 +9,9 @@ Factor: atom (POW atom)?
 Atom: (PLUS | MINUS) atom | scientific | variable | LPAREN expression RPAREN | function
 Scientific: number (E number)?
 Function: func ((LPAREN expression RPAREN) | scientific)
+Number: (PLUS | MINUS)? value
 """
 from lexer import TokenType, Token
-import logging
 
 
 class AST:
@@ -59,6 +59,30 @@ class Parser:
                 f"Invalid syntax: expected {token_type} but recieved {self.current_token}"
             )
 
+    def number(self):
+        """Number: (PLUS | MINUS)? value"""
+        token = self.current_token
+        if token.type == TokenType.PLUS:
+            self.check_token(TokenType.PLUS)
+            return UnaryOperation(token=token, child=self.number())
+        elif token.type == TokenType.MINUS:
+            self.check_token(TokenType.MINUS)
+            return UnaryOperation(token=token, child=self.number())
+        elif token.type == TokenType(TokenType.NUMBER):
+            self.check_token(TokenType.NUMBER)
+            return Number(token)
+        else:
+            raise Exception("Synatax error: expected a number.")
+
+    def scientific(self):
+        """Scientific: number (E number)?"""
+        node = self.number()
+        token = self.current_token
+        if token.type == TokenType.SCI:
+            self.check_token(TokenType.SCI)
+            node = BinaryOperation(left=node, token=token, right=self.number())
+        return node
+
     def atom(self):
         """Atom: (PLUS | MINUS) atom | scientific | variable | LPAREN expression RPAREN | function"""
         token = self.current_token
@@ -71,8 +95,7 @@ class Parser:
             node = UnaryOperation(token, self.atom())
             return node
         elif token.type == TokenType.NUMBER:
-            self.check_token(TokenType.NUMBER)
-            return Number(token)
+            return self.scientific()
         elif token.type == TokenType.LPAREN:
             self.check_token(TokenType.LPAREN)
             node = self.expression()
@@ -154,9 +177,11 @@ class Interpreter(NodeVisitor):
             return self.visit(node.left) / self.visit(node.right)
         elif operator == TokenType.POW:
             return self.visit(node.left) ** self.visit(node.right)
+        elif operator == TokenType.SCI:
+            return self.visit(node.left) * (10 ** self.visit(node.right))
         else:
             raise Exception(
-                f"No method implemented for binary operator {node.operator.type}."
+                f"No method implemented for binary operator {node.operator}."
             )
 
     def visit_UnaryOperation(self, node: UnaryOperation):
