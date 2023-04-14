@@ -19,18 +19,20 @@ class AST:
 
 
 class BinaryOperation(AST):
-    def __init__(self, left: AST, operator: Token, right: AST) -> None:
+    def __init__(self, left: AST, token: Token, right: AST) -> None:
         super().__init__()
         self.left = left
-        self.token = self.operator = operator
         self.right = right
+        self.token = token
+        self.operator = token.type
 
 
 class UnaryOperation(AST):
-    def __init__(self, operator: Token, child: AST) -> None:
+    def __init__(self, token: Token, child: AST) -> None:
         super().__init__()
-        self.token = self.operator = operator
         self.child = child
+        self.token = token
+        self.operator = token.type
 
 
 class Number(AST):
@@ -85,7 +87,7 @@ class Parser:
         token = self.current_token
         if token.type == TokenType.POW:
             self.check_token(TokenType.POW)
-            node = BinaryOperation(left=node, operator=token, right=self.atom())
+            node = BinaryOperation(left=node, token=token, right=self.atom())
         return node
 
     def term(self):
@@ -97,7 +99,7 @@ class Parser:
                 self.check_token(TokenType.MUL)
             elif token.type == TokenType.DIV:
                 self.check_token(TokenType.DIV)
-            node = BinaryOperation(left=node, operator=token, right=self.factor())
+            node = BinaryOperation(left=node, token=token, right=self.factor())
         return node
 
     def expression(self):
@@ -109,7 +111,7 @@ class Parser:
                 self.check_token(TokenType.PLUS)
             elif token.type == TokenType.MINUS:
                 self.check_token(TokenType.MINUS)
-            node = BinaryOperation(left=node, operator=token, right=self.term())
+            node = BinaryOperation(left=node, token=token, right=self.term())
         return node
 
 
@@ -141,15 +143,16 @@ class Interpreter(NodeVisitor):
         return self.visit(tree)
 
     def visit_BinaryOperation(self, node: BinaryOperation):
-        if node.operator.type == TokenType.PLUS:
+        operator = node.operator
+        if operator == TokenType.PLUS:
             return self.visit(node.left) + self.visit(node.right)
-        elif node.operator.type == TokenType.MINUS:
+        elif operator == TokenType.MINUS:
             return self.visit(node.left) - self.visit(node.right)
-        elif node.operator.type == TokenType.MUL:
+        elif operator == TokenType.MUL:
             return self.visit(node.left) * self.visit(node.right)
-        elif node.operator.type == TokenType.DIV:
+        elif operator == TokenType.DIV:
             return self.visit(node.left) / self.visit(node.right)
-        elif node.operator.type == TokenType.POW:
+        elif operator == TokenType.POW:
             return self.visit(node.left) ** self.visit(node.right)
         else:
             raise Exception(
@@ -157,7 +160,7 @@ class Interpreter(NodeVisitor):
             )
 
     def visit_UnaryOperation(self, node: UnaryOperation):
-        operator = node.operator.type
+        operator = node.operator
         if operator == TokenType.PLUS:
             return +self.visit(node.child)
         elif operator == TokenType.MINUS:
