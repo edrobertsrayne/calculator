@@ -21,7 +21,7 @@ class Lexer:
     """Create an iterator to tokenize an input string"""
 
     def __init__(self, text) -> None:
-        self.text = text
+        self.text = text.upper()
         self._pos = 0
         self._current_char = self.text[self._pos]
 
@@ -67,10 +67,19 @@ class Lexer:
 
     def _number(self) -> int:
         buffer = ""
+
         while self._current_char is not None and self._current_char.isdigit():
             buffer += self._current_char
             self._advance()
-        return int(buffer)
+        if self._current_char == ".":
+            buffer += self._current_char
+            self._advance()
+            while self._current_char is not None and self._current_char.isdigit():
+                buffer += self._current_char
+                self._advance()
+            return float(buffer)
+        else:
+            return int(buffer)
 
     def _skip_whitespace(self) -> None:
         while self._current_char is not None and self._current_char.isspace():
