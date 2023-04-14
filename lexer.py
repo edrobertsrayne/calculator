@@ -5,7 +5,7 @@ from typing import Any
 
 TokenType = Enum(
     "TokenType",
-    ["EOF", "NUMBER", "PLUS", "MINUS", "DIV", "MUL", "LPAREN", "RPAREN", "POW"],
+    ["EOF", "NUMBER", "PLUS", "MINUS", "DIV", "MUL", "LPAREN", "RPAREN", "POW", "SCI"],
 )
 
 
@@ -57,6 +57,9 @@ class Lexer:
             if self._current_char == ")":
                 self._advance()
                 return Token(TokenType.RPAREN, ")")
+            if self._current_char == "E":
+                self._advance()
+                return Token(TokenType.SCI, "E")
             self._error()
         # EOF reached: reset pointer and stop iteraction
         self._pos = 0

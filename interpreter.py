@@ -31,7 +31,9 @@ class Interpreter:
         if self.current_token.type == token_type:
             self._get_next_token()
         else:
-            raise ValueError("Invalid syntax. Token does not match.")
+            raise ValueError(
+                f"Invalid syntax: expected {token_type} but recieved {self.current_token}"
+            )
 
     def factor(self):
         token = self.current_token
