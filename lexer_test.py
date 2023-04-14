@@ -38,7 +38,9 @@ def test_lexer_invalid_character():
         list(Lexer("#"))
 
 
-@pytest.mark.parametrize("input", ["1e1", "1.0e2", "2e-1", "1e100", "0.1e10", "2e-100"])
+@pytest.mark.parametrize(
+    "input", ["1e1", "1.0e2", "2e-1", "1e100", "0.1e10", "2e-100", ".1E14"]
+)
 def test_lexer_scientific(input):
     lexer = Lexer(input)
     assert next(lexer).value == float(input)

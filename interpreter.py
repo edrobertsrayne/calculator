@@ -95,7 +95,8 @@ class Parser:
             node = UnaryOperation(token, self.atom())
             return node
         elif token.type == TokenType.NUMBER:
-            return self.scientific()
+            # return self.scientific()
+            return self.number()
         elif token.type == TokenType.LPAREN:
             self.check_token(TokenType.LPAREN)
             node = self.expression()
