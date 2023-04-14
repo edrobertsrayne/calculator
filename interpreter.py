@@ -5,8 +5,8 @@ Uses the following grammatical rules:
 
 Expression: term ((PLUS | MINUS) term)*
 Term: factor ((MUL | DIV) factor)*
-Factor: atom (POW expression)?
-Atom: scientific | variable | LPAREN expression RPAREN | function
+Factor: atom (POW atom)?
+Atom: (PLUS | MINUS) atom | scientific | variable | LPAREN expression RPAREN | function
 Scientific: number (E number)?
 Function: func ((LPAREN expression RPAREN) | scientific)
 """
@@ -24,6 +24,13 @@ class BinaryOperation(AST):
         self.left = left
         self.token = self.operator = operator
         self.right = right
+
+
+class UnaryOperation(AST):
+    def __init__(self, operator: Token, child: AST) -> None:
+        super().__init__()
+        self.token = self.operator = operator
+        self.child = child
 
 
 class Number(AST):
@@ -50,9 +57,18 @@ class Parser:
                 f"Invalid syntax: expected {token_type} but recieved {self.current_token}"
             )
 
-    def factor(self):
+    def atom(self):
+        """Atom: (PLUS | MINUS) atom | scientific | variable | LPAREN expression RPAREN | function"""
         token = self.current_token
-        if token.type == TokenType.NUMBER:
+        if token.type == TokenType.PLUS:
+            self.check_token(TokenType.PLUS)
+            node = UnaryOperation(token, self.atom())
+            return node
+        elif token.type == TokenType.MINUS:
+            self.check_token(TokenType.MINUS)
+            node = UnaryOperation(token, self.atom())
+            return node
+        elif token.type == TokenType.NUMBER:
             self.check_token(TokenType.NUMBER)
             return Number(token)
         elif token.type == TokenType.LPAREN:
@@ -63,7 +79,17 @@ class Parser:
         else:
             raise ValueError(f"Invalid syntax: {token}")
 
+    def factor(self):
+        """Factor: atom (POW atom)?"""
+        node = self.atom()
+        token = self.current_token
+        if token.type == TokenType.POW:
+            self.check_token(TokenType.POW)
+            node = BinaryOperation(left=node, operator=token, right=self.atom())
+        return node
+
     def term(self):
+        """Term: factor ((MUL | DIV) factor)*"""
         node = self.factor()
         while self.current_token.type in (TokenType.MUL, TokenType.DIV):
             token = self.current_token
@@ -75,6 +101,7 @@ class Parser:
         return node
 
     def expression(self):
+        """Expression: term ((PLUS | MINUS) term)*"""
         node = self.term()
         while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
             token = self.current_token
@@ -122,8 +149,23 @@ class Interpreter(NodeVisitor):
             return self.visit(node.left) * self.visit(node.right)
         elif node.operator.type == TokenType.DIV:
             return self.visit(node.left) / self.visit(node.right)
+        elif node.operator.type == TokenType.POW:
+            return self.visit(node.left) ** self.visit(node.right)
         else:
-            raise Exception(f"No method implemented for {node.operator}.")
+            raise Exception(
+                f"No method implemented for binary operator {node.operator.type}."
+            )
+
+    def visit_UnaryOperation(self, node: UnaryOperation):
+        operator = node.operator.type
+        if operator == TokenType.PLUS:
+            return +self.visit(node.child)
+        elif operator == TokenType.MINUS:
+            return -self.visit(node.child)
+        else:
+            raise Exception(
+                f"No method implemented for unary operator {node.operator.type}."
+            )
 
     def visit_Number(self, node: Number):
         return node.value

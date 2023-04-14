@@ -3,6 +3,14 @@ from lexer import Lexer
 import pytest
 
 
+def interpret(input):
+    lexer = Lexer(input)
+    parser = Parser(lexer=lexer)
+    interpreter = Interpreter(parser=parser)
+    result = interpreter.interpret()
+    return result
+
+
 @pytest.mark.parametrize(
     "input_values, expected_output",
     [
@@ -18,11 +26,20 @@ import pytest
         ("7 + 3 * (10 / (12 / (3 + 1) - 1))", 22),
         ("7 + 3 * (10 / (12 / (3 + 1) - 1)) / (2 + 3) - 5 - 3 + (8)", 10),
         ("7 + (((3 + 2)))", 12),
+        ("2^2", 4),
+        ("3^(1+2)", 27),
+        ("2^(2*5)", 1024),
+        ("3*2^2", 12),
+        ("3^2*2", 18),
+        ("-1", -1),
+        ("--1", 1),
+        ("-+1", -1),
+        ("5--2", 7),
+        ("5+-2", 3),
+        ("5---2", 3),
+        ("+2", 2),
+        ("2++2", 4),
     ],
 )
-def test_addition_and_subtraction(input_values, expected_output):
-    lexer = Lexer(input_values)
-    parser = Parser(lexer=lexer)
-    interpreter = Interpreter(parser=parser)
-    result = interpreter.interpret()
-    assert result == expected_output
+def test_binary_opertations(input_values, expected_output):
+    assert interpret(input_values) == expected_output
