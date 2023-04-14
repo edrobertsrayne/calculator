@@ -1,4 +1,4 @@
-from interpreter import Interpreter
+from interpreter import Interpreter, Parser
 from lexer import Lexer
 import pytest
 
@@ -21,5 +21,8 @@ import pytest
     ],
 )
 def test_addition_and_subtraction(input_values, expected_output):
-    interpreter = Interpreter(Lexer(input_values))
-    assert interpreter.run() == expected_output
+    lexer = Lexer(input_values)
+    parser = Parser(lexer=lexer)
+    interpreter = Interpreter(parser=parser)
+    result = interpreter.interpret()
+    assert result == expected_output
