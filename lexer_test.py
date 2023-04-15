@@ -1,5 +1,6 @@
 """Test suite for the lexer module"""
 import pytest
+
 from lexer import Lexer, Token, TokenType
 
 

@@ -11,7 +11,7 @@ Scientific: number (E number)?
 Function: func ((LPAREN expression RPAREN) | scientific)
 Number: (PLUS | MINUS)? value
 """
-from lexer import TokenType, Token
+from lexer import Token, TokenType
 
 
 class AST:

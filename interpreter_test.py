@@ -1,6 +1,7 @@
+import pytest
+
 from interpreter import Interpreter, Parser
 from lexer import Lexer
-import pytest
 
 
 def interpret(input):
