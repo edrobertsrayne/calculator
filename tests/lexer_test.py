@@ -1,7 +1,6 @@
 """Test suite for the lexer module"""
 import pytest
-
-from lexer import Lexer, Token, TokenType
+from calculator.lexer import Lexer, Token, TokenType
 
 
 def test_lexer_advance_position():
