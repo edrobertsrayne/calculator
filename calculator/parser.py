@@ -1,17 +1,40 @@
-from calculator.ast import *
+"""
+Parser for an arithmetic calculator.
+
+Uses the following grammatical rules:
+
+Expression: term ((PLUS | MINUS) term)*
+Term: factor ((MUL | DIV) factor)*
+Factor: atom (POW atom)?
+Atom: (PLUS | MINUS) atom | number | variable | LPAREN expression RPAREN | function
+Function: func ((LPAREN expression RPAREN) | number)
+Number: (PLUS | MINUS)? value
+"""
+
+from calculator.ast import AST, BinaryOperation, Number, UnaryOperation
+from calculator.lexer import Lexer
 from calculator.token import Token, TokenType
 
 
 class Parser:
-    def __init__(self, lexer) -> None:
-        self.lexer = lexer
-        self.current_token = next(self.lexer)
+    """Class to implement the parser.
 
-    def parse(self):
+    parser = Parse(Lexer)
+    tree = parser.parse()
+
+    Takes a Lexer object or an iterable of tokens as a parameter.
+    Returns a tree of AST nodes.
+    """
+
+    def __init__(self, lexer: Lexer) -> None:
+        self.lexer: Lexer = lexer
+        self.current_token: Token = next(self.lexer)
+
+    def parse(self) -> AST:
+        """Method to parse the token stream into an AST tree"""
         return self.expression()
 
-    def check_token(self, token_type):
-        """If the token type matches the expected type, fetch the next token. Otherwise raise an error"""
+    def _eat(self, token_type):
         if self.current_token.type == token_type:
             self.current_token = next(self.lexer, Token(TokenType.EOF, None))
         else:
@@ -23,54 +46,47 @@ class Parser:
         """Number: (PLUS | MINUS)? value"""
         token = self.current_token
         if token.type == TokenType.PLUS:
-            self.check_token(TokenType.PLUS)
+            self._eat(TokenType.PLUS)
             return UnaryOperation(token=token, child=self.number())
-        elif token.type == TokenType.MINUS:
-            self.check_token(TokenType.MINUS)
+        if token.type == TokenType.MINUS:
+            self._eat(TokenType.MINUS)
             return UnaryOperation(token=token, child=self.number())
-        elif token.type == TokenType(TokenType.NUMBER):
-            self.check_token(TokenType.NUMBER)
+        if token.type == TokenType(TokenType.NUMBER):
+            self._eat(TokenType.NUMBER)
             return Number(token)
-        else:
-            raise Exception("Synatax error: expected a number.")
-
-    def scientific(self):
-        """Scientific: number (E number)?"""
-        node = self.number()
-        token = self.current_token
-        if token.type == TokenType.SCI:
-            self.check_token(TokenType.SCI)
-            node = BinaryOperation(left=node, token=token, right=self.number())
-        return node
+        raise SyntaxError("Expected a number.")
 
     def atom(self):
-        """Atom: (PLUS | MINUS) atom | scientific | variable | LPAREN expression RPAREN | function"""
+        """Atom: (PLUS | MINUS) atom
+        | number
+        | variable
+        | LPAREN expression RPAREN
+        | function"""
         token = self.current_token
         if token.type == TokenType.PLUS:
-            self.check_token(TokenType.PLUS)
+            self._eat(TokenType.PLUS)
             node = UnaryOperation(token, self.atom())
             return node
-        elif token.type == TokenType.MINUS:
-            self.check_token(TokenType.MINUS)
+        if token.type == TokenType.MINUS:
+            self._eat(TokenType.MINUS)
             node = UnaryOperation(token, self.atom())
             return node
-        elif token.type == TokenType.NUMBER:
+        if token.type == TokenType.NUMBER:
             # return self.scientific()
             return self.number()
-        elif token.type == TokenType.LPAREN:
-            self.check_token(TokenType.LPAREN)
+        if token.type == TokenType.LPAREN:
+            self._eat(TokenType.LPAREN)
             node = self.expression()
-            self.check_token(TokenType.RPAREN)
+            self._eat(TokenType.RPAREN)
             return node
-        else:
-            raise ValueError(f"Invalid syntax: {token}")
+        raise ValueError(f"Invalid syntax: {token}")
 
     def factor(self):
         """Factor: atom (POW atom)?"""
         node = self.atom()
         token = self.current_token
         if token.type == TokenType.POW:
-            self.check_token(TokenType.POW)
+            self._eat(TokenType.POW)
             node = BinaryOperation(left=node, token=token, right=self.atom())
         return node
 
@@ -80,9 +96,9 @@ class Parser:
         while self.current_token.type in (TokenType.MUL, TokenType.DIV):
             token = self.current_token
             if token.type == TokenType.MUL:
-                self.check_token(TokenType.MUL)
+                self._eat(TokenType.MUL)
             elif token.type == TokenType.DIV:
-                self.check_token(TokenType.DIV)
+                self._eat(TokenType.DIV)
             node = BinaryOperation(left=node, token=token, right=self.factor())
         return node
 
@@ -92,8 +108,8 @@ class Parser:
         while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
             token = self.current_token
             if token.type == TokenType.PLUS:
-                self.check_token(TokenType.PLUS)
+                self._eat(TokenType.PLUS)
             elif token.type == TokenType.MINUS:
-                self.check_token(TokenType.MINUS)
+                self._eat(TokenType.MINUS)
             node = BinaryOperation(left=node, token=token, right=self.term())
         return node

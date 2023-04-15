@@ -1,24 +1,15 @@
-"""
-Parser and Interpreter for an aritmetic calculator.
+"""Interpreter class"""
+from typing import Any
 
-Uses the following grammatical rules:
-
-Expression: term ((PLUS | MINUS) term)*
-Term: factor ((MUL | DIV) factor)*
-Factor: atom (POW atom)?
-Atom: (PLUS | MINUS) atom | scientific | variable | LPAREN expression RPAREN | function
-Scientific: number (E number)?
-Function: func ((LPAREN expression RPAREN) | scientific)
-Number: (PLUS | MINUS)? value
-"""
-from calculator.ast import *
+from calculator.ast import AST, BinaryOperation, Number, UnaryOperation
 from calculator.lexer import TokenType
 from calculator.parser import Parser
 
 
-class NodeVisitor:
+class NodeVisitor:  # pylint: disable=too-few-public-methods
     """
     Parent class to implement the Visitor pattern.
+
     https://en.wikipedia.org/wiki/Visitor_pattern
     """
 
@@ -26,52 +17,61 @@ class NodeVisitor:
         pass
 
     def visit(self, node: AST):
+        """Method to trawl the AST tree.
+
+        Requires a 'vist_' method for each type of node defined.
+        Raises a RunTimeError if no visit method found.
+        """
         method_name = "visit_" + type(node).__name__
-        visitor = getattr(self, method_name, self.generic_visit)
+        visitor = getattr(self, method_name, self._generic_visit)
         return visitor(node)
 
-    def generic_visit(self, node: AST):
-        raise Exception(f"No visit_{type(node).__name__} method.")
+    def _generic_visit(self, node: AST):
+        raise RuntimeError(f"No visit_{type(node).__name__} method.")
 
 
 class Interpreter(NodeVisitor):
+    """Class to represent an interpreter"""
+
     def __init__(self, parser: Parser) -> None:
         super().__init__()
-        self.parser = parser
+        self.parser: Parser = parser
 
-    def interpret(self):
+    def interpret(self) -> Any:
+        """Method to interpret an AST tree"""
         tree = self.parser.parse()
         return self.visit(tree)
 
-    def visit_BinaryOperation(self, node: BinaryOperation):
+    def visit_BinaryOperation(
+        self, node: BinaryOperation
+    ):  # pylint: disable=invalid-name
+        """Visit method for BinaryOperation nodes."""
         operator = node.operator
         if operator == TokenType.PLUS:
             return self.visit(node.left) + self.visit(node.right)
-        elif operator == TokenType.MINUS:
+        if operator == TokenType.MINUS:
             return self.visit(node.left) - self.visit(node.right)
-        elif operator == TokenType.MUL:
+        if operator == TokenType.MUL:
             return self.visit(node.left) * self.visit(node.right)
-        elif operator == TokenType.DIV:
+        if operator == TokenType.DIV:
             return self.visit(node.left) / self.visit(node.right)
-        elif operator == TokenType.POW:
+        if operator == TokenType.POW:
             return self.visit(node.left) ** self.visit(node.right)
-        elif operator == TokenType.SCI:
-            return self.visit(node.left) * (10 ** self.visit(node.right))
-        else:
-            raise Exception(
-                f"No method implemented for binary operator {node.operator}."
-            )
+        raise RuntimeError(
+            f"No method implemented for binary operator {node.operator}."
+        )
 
-    def visit_UnaryOperation(self, node: UnaryOperation):
+    def visit_UnaryOperation(
+        self, node: UnaryOperation
+    ):  # pylint: disable=invalid-name
+        """Visit method for UnaryOperation nodes."""
         operator = node.operator
         if operator == TokenType.PLUS:
             return +self.visit(node.child)
-        elif operator == TokenType.MINUS:
+        if operator == TokenType.MINUS:
             return -self.visit(node.child)
-        else:
-            raise Exception(
-                f"No method implemented for unary operator {node.operator.type}."
-            )
+        raise RuntimeError(f"No method implemented for unary operator {node.operator}.")
 
-    def visit_Number(self, node: Number):
+    def visit_Number(self, node: Number):  # pylint: disable=invalid-name
+        """Visit method for Number nodes."""
         return node.value
