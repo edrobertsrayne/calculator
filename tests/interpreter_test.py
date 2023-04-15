@@ -1,4 +1,5 @@
 import pytest
+
 from calculator.interpreter import Interpreter, Parser
 from calculator.lexer import Lexer
 

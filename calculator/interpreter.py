@@ -11,9 +11,9 @@ Scientific: number (E number)?
 Function: func ((LPAREN expression RPAREN) | scientific)
 Number: (PLUS | MINUS)? value
 """
+from calculator.ast import *
 from calculator.lexer import TokenType
 from calculator.parser import Parser
-from calculator.ast import *
 
 
 class NodeVisitor:

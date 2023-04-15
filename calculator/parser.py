@@ -1,5 +1,5 @@
-from calculator.token import Token, TokenType
 from calculator.ast import *
+from calculator.token import Token, TokenType
 
 
 class Parser:
