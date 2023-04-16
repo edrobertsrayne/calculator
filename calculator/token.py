@@ -1,12 +1,22 @@
 """Data types for token management"""
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 from typing import Any
 
-TokenType = Enum(
-    "TokenType",
-    ["EOF", "NUMBER", "PLUS", "MINUS", "DIV", "MUL", "LPAREN", "RPAREN", "POW"],
-)
+
+class TokenType(Enum):
+    EOF = auto()
+    NUMBER = auto()
+    PLUS = auto()
+    MINUS = auto()
+    DIV = auto()
+    MUL = auto()
+    LPAREN = auto()
+    RPAREN = auto()
+    POW = auto()
+    MOD = auto()  # TODO: Implement modulus function
+    FUNC = auto()
+    ID = auto()  # TODO: Implement variables
 
 
 @dataclass

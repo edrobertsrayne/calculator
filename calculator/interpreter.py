@@ -1,7 +1,8 @@
 """Interpreter class"""
+import math
 from typing import Any
 
-from calculator.ast import AST, BinaryOperation, Number, UnaryOperation
+from calculator.ast import AST, BinaryOperation, Function, Number, UnaryOperation
 from calculator.lexer import TokenType
 from calculator.parser import Parser
 
@@ -75,3 +76,31 @@ class Interpreter(NodeVisitor):
     def visit_Number(self, node: Number):  # pylint: disable=invalid-name
         """Visit method for Number nodes."""
         return node.value
+
+    def visit_Function(self, node: Function):
+        # TODO: Refactor this so it uses a list comprehension or something similar
+        function = node.function
+        child = self.visit(node.child)
+        if function == "COS":
+            value = math.cos(math.radians(child))
+        elif function == "SIN":
+            value = math.sin(math.radians(child))
+        elif function == "TAN":
+            value = math.tan(math.radians(child))
+        elif function == "EXP":
+            value = math.exp(child)
+        elif function == "LN":
+            value = math.log(child)
+        elif function == "LOG":
+            value = math.log10(child)
+        elif function == "SQRT":
+            value = math.sqrt(child)
+        elif function == "ASIN":
+            value = math.degrees(math.asin(child))
+        elif function == "ACOS":
+            value = math.degrees(math.acos(child))
+        elif function == "ATAN":
+            value = math.degrees(math.atan(child))
+        else:
+            raise RuntimeError(f"No method for function {node.function}.")
+        return value

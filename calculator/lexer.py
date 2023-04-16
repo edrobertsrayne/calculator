@@ -2,6 +2,19 @@
 
 from calculator.token import Token, TokenType
 
+BUILTIN_FUNCTIONS = [
+    "SIN",
+    "COS",
+    "TAN",
+    "EXP",
+    "LN",
+    "LOG",
+    "SQRT",
+    "ACOS",
+    "ASIN",
+    "ATAN",
+]
+
 
 class Lexer:
     """Create an iterator to tokenize an input string."""
@@ -44,10 +57,29 @@ class Lexer:
             if self._current_char == ")":
                 self._advance()
                 return Token(TokenType.RPAREN, ")")
-            self._error()
+            if self._current_char.isalpha():
+                token = self._read_text()
+                return token
+            raise ValueError(f"Invalid character: {self._current_char}")
+
         # EOF reached: reset pointer and stop iteraction
         self._pos = 0
         raise StopIteration
+
+    def _read_text(self) -> Token:
+        buffer = ""
+
+        # keep reading all alphabetic characters
+        while self._current_char is not None and self._current_char.isalpha():
+            buffer += self._current_char
+            self._advance()
+
+        # test to see if the buffer represents a builtin function
+        if buffer in BUILTIN_FUNCTIONS:
+            return Token(TokenType.FUNC, buffer)
+
+        # temporary error
+        raise ValueError(f"{buffer} is not a recognized function.")
 
     def _number(self) -> float:
         buffer = ""
@@ -84,9 +116,6 @@ class Lexer:
     def _skip_whitespace(self) -> None:
         while self._current_char is not None and self._current_char.isspace():
             self._advance()
-
-    def _error(self) -> None:
-        raise ValueError(f"Invalid character: {self._current_char}")
 
     def _advance(self) -> None:
         self._pos += 1

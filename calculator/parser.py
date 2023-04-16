@@ -6,12 +6,11 @@ Uses the following grammatical rules:
 Expression: term ((PLUS | MINUS) term)*
 Term: factor ((MUL | DIV) factor)*
 Factor: atom (POW atom)?
-Atom: (PLUS | MINUS) atom | number | variable | LPAREN expression RPAREN | function
-Function: func ((LPAREN expression RPAREN) | number)
+Atom: (PLUS | MINUS) atom | number | variable | LPAREN expression RPAREN | function atom
 Number: (PLUS | MINUS)? value
 """
 
-from calculator.ast import AST, BinaryOperation, Number, UnaryOperation
+from calculator.ast import AST, BinaryOperation, Function, Number, UnaryOperation
 from calculator.lexer import Lexer
 from calculator.token import Token, TokenType
 
@@ -61,7 +60,7 @@ class Parser:
         | number
         | variable
         | LPAREN expression RPAREN
-        | function"""
+        | function atom"""
         token = self.current_token
         if token.type == TokenType.PLUS:
             self._eat(TokenType.PLUS)
@@ -79,6 +78,9 @@ class Parser:
             node = self.expression()
             self._eat(TokenType.RPAREN)
             return node
+        if token.type == TokenType.FUNC:
+            self._eat(TokenType.FUNC)
+            return Function(token, self.atom())
         raise ValueError(f"Invalid syntax: {token}")
 
     def factor(self):

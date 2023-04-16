@@ -34,3 +34,13 @@ class Number(AST):  # pylint: disable=too-few-public-methods:
         super().__init__()
         self.token = token
         self.value = token.value
+
+
+class Function(AST):
+    """Class to provide a node for functions."""
+
+    def __init__(self, token: Token, child: AST) -> None:
+        super().__init__()
+        self.child = child
+        self.token = token
+        self.function = token.value
